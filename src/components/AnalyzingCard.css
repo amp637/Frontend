@@ -1,0 +1,60 @@
+.analyzing-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 65px;
+  width: 912px;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.analyzing-state {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.analyzing-heading h1 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 36px;
+  letter-spacing: 0.0703125px;
+  color: #111827;
+  text-align: center;
+  margin: 0;
+}
+
+.analyzing-paragraph p {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.3125px;
+  color: #4b5563;
+  text-align: center;
+  margin: 0;
+}
+
+@media (max-width: 1024px) {
+  .analyzing-card {
+    width: 100%;
+    padding: 40px;
+  }
+}
+
+@media (max-width: 768px) {
+  .analyzing-card {
+    padding: 24px;
+  }
+
+  .analyzing-heading h1 {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .analyzing-state {
+    gap: 24px;
+  }
+}
+
