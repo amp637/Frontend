@@ -1,0 +1,4 @@
+# SPA 리다이렉트 규칙
+# 모든 경로를 index.html로 리다이렉트하여 React Router가 처리하도록 함
+/*    /index.html   200
+
