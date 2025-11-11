@@ -9,8 +9,8 @@ type AppState = 'upload' | 'analyzing' | 'results'
 
 function App() {
   const [appState, setAppState] = useState<AppState>('upload')
-  const [taskId, setTaskId] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [_taskId, setTaskId] = useState<string | null>(null)
+  const [_error, setError] = useState<string | null>(null)
 
   const handleUpload = async (file: File) => {
     console.log('File uploaded:', file)
@@ -21,29 +21,20 @@ function App() {
       // 1. 파일 업로드
       const uploadResult = await uploadFile(file)
       
-      if (!uploadResult.success) {
-        console.error('Upload failed:', uploadResult.error)
-        setError(uploadResult.error || 'Upload failed')
-        setAppState('upload')
-        alert(`업로드 실패: ${uploadResult.error}`)
-        return
-      }
-      
-      console.log('Upload success:', uploadResult.data)
-      const uploadedTaskId = uploadResult.data?.task_id
+      console.log('Upload success:', uploadResult)
+      const uploadedTaskId = uploadResult?.task_id
       setTaskId(uploadedTaskId)
       
       // 2. 3초 후 점수 조회 (실제로는 서버에서 완료 신호를 받거나 폴링 사용)
       setTimeout(async () => {
-        const scoreResult = await getScore(uploadedTaskId)
-        
-        if (scoreResult.success) {
-          console.log('Score retrieved:', scoreResult.data)
+        try {
+          const scoreResult = await getScore()
+          console.log('Score retrieved:', scoreResult)
           setAppState('results')
-        } else {
-          console.error('Failed to get score:', scoreResult.error)
-          setError(scoreResult.error || 'Failed to get score')
-          alert(`점수 조회 실패: ${scoreResult.error}`)
+        } catch (scoreErr) {
+          console.error('Failed to get score:', scoreErr)
+          setError('Failed to get score')
+          alert('점수 조회 실패')
           setAppState('upload')
         }
       }, 3000)
