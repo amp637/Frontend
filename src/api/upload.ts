@@ -16,8 +16,13 @@ export const uploadFile = async (file: File) => {
     console.log('✅ 업로드 성공:', response.data);
     return response.data;
   } catch (err: any) {
-    console.error('❌ 업로드 실패:', err.response?.data || err.message);
-    console.error('전체 에러 객체:', err);
+    if (err.response) {
+      const data = err.response.data;
+      const dataStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+      console.error(`❌ 업로드 실패 [${err.response.status}]:`, dataStr);
+    } else {
+      console.error('❌ 업로드 실패 (네트워크 에러):', err.message);
+    }
     throw err;
   }
 };

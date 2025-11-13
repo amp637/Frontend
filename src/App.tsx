@@ -31,16 +31,28 @@ function App() {
           const scoreResult = await getScore()
           console.log('Score retrieved:', scoreResult)
           setAppState('results')
-        } catch (scoreErr) {
-          console.error('Failed to get score:', scoreErr)
+        } catch (scoreErr: any) {
+          if (scoreErr.response) {
+            const data = scoreErr.response.data;
+            const dataStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+            console.error(`❌ Failed to get score [${scoreErr.response.status}]:`, dataStr);
+          } else {
+            console.error('❌ Failed to get score (네트워크 에러):', scoreErr.message);
+          }
           setError('Failed to get score')
           alert('점수 조회 실패')
           setAppState('upload')
         }
       }, 3000)
       
-    } catch (err) {
-      console.error('Unexpected error:', err)
+    } catch (err: any) {
+      if (err.response) {
+        const data = err.response.data;
+        const dataStr = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+        console.error(`❌ Unexpected error [${err.response.status}]:`, dataStr);
+      } else {
+        console.error('❌ Unexpected error (네트워크 에러):', err.message);
+      }
       setError('Unexpected error occurred')
       setAppState('upload')
       alert('예상치 못한 오류가 발생했습니다.')
