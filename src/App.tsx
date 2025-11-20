@@ -1,16 +1,25 @@
 import { useState } from 'react'
+import Login from './pages/Login'
 import WebUpload from './pages/WebUpload'
 import Analyzing from './pages/Analyzing'
 import Result from './pages/Result'
 import { uploadFile, getScore } from './api'
 import './App.css'
 
-type AppState = 'upload' | 'analyzing' | 'results'
+type AppState = 'login' | 'upload' | 'analyzing' | 'results'
 
 function App() {
-  const [appState, setAppState] = useState<AppState>('upload')
+  const [appState, setAppState] = useState<AppState>('login')
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false)
   const [_taskId, setTaskId] = useState<string | null>(null)
   const [_error, setError] = useState<string | null>(null)
+
+  const handleLogin = () => {
+    // TODO: 실제 Google 로그인 로직 구현
+    console.log('Login successful')
+    setIsAuthenticated(true)
+    setAppState('upload')
+  }
 
   const handleUpload = async (file: File) => {
     console.log('File uploaded:', file)
@@ -67,9 +76,10 @@ function App() {
 
   return (
     <>
-      {appState === 'upload' && <WebUpload onUpload={handleUpload} />}
-      {appState === 'analyzing' && <Analyzing />}
-      {appState === 'results' && <Result onReset={handleReset} />}
+      {appState === 'login' && <Login onLogin={handleLogin} />}
+      {appState === 'upload' && isAuthenticated && <WebUpload onUpload={handleUpload} />}
+      {appState === 'analyzing' && isAuthenticated && <Analyzing />}
+      {appState === 'results' && isAuthenticated && <Result onReset={handleReset} />}
     </>
   )
 }
