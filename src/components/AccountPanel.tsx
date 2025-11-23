@@ -15,6 +15,7 @@ interface AccountPanelProps {
   userEmail?: string;
   userInitial?: string;
   uploadHistory?: UploadHistory[];
+  onLogout?: () => void;
 }
 
 const AccountPanel: React.FC<AccountPanelProps> = ({
@@ -23,7 +24,8 @@ const AccountPanel: React.FC<AccountPanelProps> = ({
   userName = 'Alex Johnson',
   userEmail = 'alex.johnson@example.com',
   userInitial = 'A',
-  uploadHistory = []
+  uploadHistory = [],
+  onLogout
 }) => {
   if (!isOpen) return null;
 
@@ -115,6 +117,11 @@ const AccountPanel: React.FC<AccountPanelProps> = ({
 
         {/* Footer */}
         <div className="account-panel-footer">
+          {onLogout && (
+            <button className="logout-button" onClick={onLogout}>
+              Log Out
+            </button>
+          )}
           <button className="close-button" onClick={onClose}>
             Close
           </button>
