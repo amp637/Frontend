@@ -43,11 +43,6 @@ function App() {
     }
   }, [isAuthenticated, appState])
 
-  const handleLogin = () => {
-    // Login 버튼 클릭 시 (실제 로그인은 Google OAuth에서 처리)
-    console.log('Redirecting to Google login...')
-  }
-
   const handleAuthSuccess = () => {
     // OAuth 인증 성공 후 호출
     console.log('Authentication successful')
@@ -153,7 +148,7 @@ function App() {
 
   return (
     <>
-      {appState === 'login' && <Login onLogin={handleLogin} />}
+      {appState === 'login' && <Login />}
       {appState === 'callback' && (
         <AuthCallback 
           onSuccess={handleAuthSuccess} 

@@ -2,11 +2,7 @@ import React from 'react';
 import { startGoogleLogin } from '../api/auth';
 import './Login.css';
 
-interface LoginProps {
-  onLogin: () => void;
-}
-
-const Login: React.FC<LoginProps> = ({ onLogin }) => {
+const Login: React.FC = () => {
   const handleGoogleLogin = () => {
     try {
       // Google OAuth 로그인 시작
