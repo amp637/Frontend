@@ -146,8 +146,19 @@ function App() {
       <Routes>
         {/* Public Routes */}
         <Route path="/login" element={
-          // Zustand store의 isAuthenticated 또는 localStorage의 jwt 토큰이 있으면 업로드 페이지로
-          (isAuthenticated || localStorage.getItem('jwt')) ? <Navigate to="/" replace /> : <Login />
+          (() => {
+            const hasJWT = localStorage.getItem('jwt');
+            console.log('🔐 /login 라우트 체크:', { hasJWT: !!hasJWT, isAuthenticated });
+            
+            // JWT가 있으면 업로드 페이지로 리다이렉트
+            if (isAuthenticated || hasJWT) {
+              console.log('✅ JWT 있음 - / 로 리다이렉트');
+              return <Navigate to="/" replace />;
+            }
+            
+            console.log('❌ JWT 없음 - 로그인 페이지 표시');
+            return <Login />;
+          })()
         } />
         
         <Route path="/callback" element={<AuthCallback />} />

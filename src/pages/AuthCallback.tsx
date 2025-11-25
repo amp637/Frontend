@@ -34,6 +34,15 @@ const AuthCallback: React.FC = () => {
 
         // JWT 토큰을 localStorage에 저장 (참고 App.tsx: localStorage.setItem("jwt", token))
         localStorage.setItem('jwt', token);
+        console.log('💾 localStorage에 JWT 저장 완료');
+        
+        // 저장 확인
+        const savedToken = localStorage.getItem('jwt');
+        console.log('✅ 저장된 JWT 확인:', savedToken ? savedToken.substring(0, 20) + '...' : 'null');
+        
+        if (!savedToken) {
+          throw new Error('JWT 저장 실패');
+        }
 
         // JWT 토큰에서 사용자 정보 디코딩
         const userInfo = decodeJWT(token);
@@ -59,15 +68,23 @@ const AuthCallback: React.FC = () => {
         setProcessed(true); // 처리 완료 플래그 설정
         
         console.log('✅ 로그인 완료! 업로드 페이지로 이동합니다...');
-        console.log('✅ JWT 저장 확인:', localStorage.getItem('jwt')?.substring(0, 20) + '...');
         console.log('✅ Zustand login() 호출 완료');
         
+        // localStorage에 JWT가 있는지 최종 확인
+        const finalCheck = localStorage.getItem('jwt');
+        console.log('🔍 최종 JWT 확인:', finalCheck ? '있음' : '없음');
+        
+        if (!finalCheck) {
+          throw new Error('JWT 최종 확인 실패 - localStorage에 저장되지 않음');
+        }
+        
         // 성공 후 업로드 페이지로 강제 이동
-        // React Router의 navigate 대신 window.location.replace 사용 (확실한 페이지 이동)
         setTimeout(() => {
-          console.log('🔄 window.location.replace("/") 실행');
-          window.location.replace('/');
-        }, 300);
+          const beforeMove = localStorage.getItem('jwt');
+          console.log('🔄 이동 직전 JWT 확인:', beforeMove ? '있음 (' + beforeMove.substring(0, 20) + '...)' : '없음');
+          console.log('🔄 window.location.href = "/" 실행');
+          window.location.href = '/';
+        }, 500);
 
       } catch (err: any) {
         console.error('❌ 인증 처리 실패:', err);
