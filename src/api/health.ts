@@ -1,4 +1,4 @@
-import apiClient from '../lib/api';
+import api from '../lib/api';
 
 /**
  * 서버 상태 확인 (Health Check)
@@ -6,7 +6,7 @@ import apiClient from '../lib/api';
  */
 export const checkHealth = async () => {
   try {
-    const response = await apiClient.get('/health');
+    const response = await api.get('/health');
     return {
       success: true,
       data: response.data,

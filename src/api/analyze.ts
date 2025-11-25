@@ -1,4 +1,4 @@
-import apiClient from '../lib/api';
+import api from '../lib/api';
 
 /**
  * 파일 업로드 및 분석 요청
@@ -14,7 +14,7 @@ export const analyzeFile = async (file: File) => {
     // 추가 메타데이터가 필요한 경우
     // formData.append('options', JSON.stringify({ ... }));
 
-    const response = await apiClient.post('/analyze', formData, {
+    const response = await api.post('/analyze', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -64,7 +64,7 @@ export const analyzeFile = async (file: File) => {
  */
 export const getAnalysisStatus = async (taskId: string) => {
   try {
-    const response = await apiClient.get(`/analyze/${taskId}/status`);
+    const response = await api.get(`/analyze/${taskId}/status`);
     return {
       success: true,
       data: response.data,
