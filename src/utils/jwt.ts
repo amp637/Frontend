@@ -68,15 +68,24 @@ export function isTokenExpired(token: string): boolean {
 /**
  * localStorage에서 토큰을 가져옴
  * @returns JWT 토큰 문자열 또는 null
+ * 
+ * 참고: 참고 App.tsx와 동일하게 "jwt" 키를 사용합니다.
  */
 export function getToken(): string | null {
-  return localStorage.getItem('accessToken');
+  return localStorage.getItem('jwt');
 }
 
 /**
  * localStorage에서 토큰 제거
+ * 
+ * 참고: 참고 App.tsx와 동일하게 "jwt" 키를 사용합니다.
  */
 export function removeToken(): void {
-  localStorage.removeItem('accessToken');
+  localStorage.removeItem('jwt');
 }
+
+
+
+
+
 

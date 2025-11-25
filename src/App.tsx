@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import Login from './pages/Login'
 import AuthCallback from './pages/AuthCallback'
 import WebUpload from './pages/WebUpload'
@@ -10,8 +11,6 @@ import { useAuthStore } from './store/authStore'
 import { logout as apiLogout } from './api/auth'
 import './App.css'
 
-type AppState = 'login' | 'callback' | 'upload' | 'analyzing' | 'results'
-
 interface UploadHistory {
   id: string;
   fileName: string;
@@ -20,44 +19,17 @@ interface UploadHistory {
 }
 
 function App() {
-  const [appState, setAppState] = useState<AppState>('login')
   const [isAccountPanelOpen, setIsAccountPanelOpen] = useState<boolean>(false)
   const [uploadHistory, setUploadHistory] = useState<UploadHistory[]>([])
   const [_taskId, setTaskId] = useState<string | null>(null)
   const [_error, setError] = useState<string | null>(null)
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false)
+  const [showResults, setShowResults] = useState<boolean>(false)
+
+  const navigate = useNavigate()
 
   // Zustand 스토어에서 인증 정보 가져오기
   const { user, isAuthenticated, logout: storeLogout } = useAuthStore()
-
-  // 컴포넌트 마운트 시 URL 확인 (callback 처리)
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const token = urlParams.get('token')
-    
-    if (token) {
-      // OAuth callback 처리 (백엔드에서 token과 함께 리다이렉트)
-      setAppState('callback')
-    } else if (isAuthenticated && appState === 'login') {
-      // 이미 로그인된 상태면 업로드 페이지로 이동
-      setAppState('upload')
-    }
-  }, [isAuthenticated, appState])
-
-  const handleAuthSuccess = () => {
-    // OAuth 인증 성공 후 호출
-    console.log('Authentication successful')
-    // URL에서 code 파라미터 제거
-    window.history.replaceState({}, document.title, window.location.pathname)
-    setAppState('upload')
-  }
-
-  const handleAuthError = () => {
-    // OAuth 인증 실패 시 호출
-    console.error('Authentication failed')
-    // URL에서 code 파라미터 제거
-    window.history.replaceState({}, document.title, window.location.pathname)
-    setAppState('login')
-  }
 
   const handleLogout = async () => {
     try {
@@ -66,8 +38,8 @@ function App() {
       console.error('로그아웃 API 호출 실패:', error)
     }
     storeLogout()
-    setAppState('login')
     setIsAccountPanelOpen(false)
+    navigate('/login')
   }
 
   const getUserInitial = () => {
@@ -85,7 +57,8 @@ function App() {
 
   const handleUpload = async (file: File) => {
     console.log('File uploaded:', file)
-    setAppState('analyzing')
+    setIsAnalyzing(true)
+    setShowResults(false)
     setError(null)
     
     try {
@@ -96,7 +69,7 @@ function App() {
       const uploadedTaskId = uploadResult?.task_id
       setTaskId(uploadedTaskId)
       
-      // 2. 3초 후 점수 조회 (실제로는 서버에서 완료 신호를 받거나 폴링 사용)
+      // 2. 3초 후 점수 조회
       setTimeout(async () => {
         try {
           const scoreResult = await getScore()
@@ -111,7 +84,8 @@ function App() {
           }
           setUploadHistory(prev => [newHistoryItem, ...prev])
           
-          setAppState('results')
+          setIsAnalyzing(false)
+          setShowResults(true)
         } catch (scoreErr: any) {
           if (scoreErr.response) {
             const data = scoreErr.response.data;
@@ -122,7 +96,7 @@ function App() {
           }
           setError('Failed to get score')
           alert('점수 조회 실패')
-          setAppState('upload')
+          setIsAnalyzing(false)
         }
       }, 3000)
       
@@ -135,46 +109,80 @@ function App() {
         console.error('❌ Unexpected error (네트워크 에러):', err.message);
       }
       setError('Unexpected error occurred')
-      setAppState('upload')
+      setIsAnalyzing(false)
       alert('예상치 못한 오류가 발생했습니다.')
     }
   }
 
   const handleReset = () => {
-    setAppState('upload')
+    setShowResults(false)
     setTaskId(null)
     setError(null)
   }
 
+  // Protected Route Component
+  // localStorage의 'jwt' 토큰을 직접 체크하여 인증 여부 확인
+  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+    const hasJWT = localStorage.getItem('jwt') !== null;
+    
+    console.log('🔐 ProtectedRoute 체크:', { 
+      hasJWT, 
+      isAuthenticated,
+      jwt: localStorage.getItem('jwt')?.substring(0, 20) + '...'
+    });
+    
+    // JWT가 있으면 무조건 인증됨으로 처리 (Zustand store보다 우선)
+    if (!hasJWT) {
+      console.log('❌ JWT 없음 - 로그인 페이지로 리다이렉트');
+      return <Navigate to="/login" replace />
+    }
+    
+    console.log('✅ JWT 있음 - 페이지 접근 허용');
+    return <>{children}</>
+  }
+
   return (
     <>
-      {appState === 'login' && <Login />}
-      {appState === 'callback' && (
-        <AuthCallback 
-          onSuccess={handleAuthSuccess} 
-          onError={handleAuthError} 
-        />
-      )}
-      {appState === 'upload' && isAuthenticated && (
-        <WebUpload 
-          onUpload={handleUpload} 
-          userInitial={getUserInitial()} 
-          onProfileClick={handleProfileClick}
-        />
-      )}
-      {appState === 'analyzing' && isAuthenticated && (
-        <Analyzing 
-          userInitial={getUserInitial()} 
-          onProfileClick={handleProfileClick}
-        />
-      )}
-      {appState === 'results' && isAuthenticated && (
-        <Result 
-          onReset={handleReset} 
-          userInitial={getUserInitial()} 
-          onProfileClick={handleProfileClick}
-        />
-      )}
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/login" element={
+          // Zustand store의 isAuthenticated 또는 localStorage의 jwt 토큰이 있으면 업로드 페이지로
+          (isAuthenticated || localStorage.getItem('jwt')) ? <Navigate to="/" replace /> : <Login />
+        } />
+        
+        <Route path="/callback" element={<AuthCallback />} />
+
+        {/* Protected Routes */}
+        <Route path="/" element={
+          <ProtectedRoute>
+            {isAnalyzing ? (
+              <Analyzing 
+                userInitial={getUserInitial()} 
+                onProfileClick={handleProfileClick}
+              />
+            ) : showResults ? (
+              <Result 
+                onReset={handleReset} 
+                userInitial={getUserInitial()} 
+                onProfileClick={handleProfileClick}
+              />
+            ) : (
+              <WebUpload 
+                onUpload={handleUpload} 
+                userInitial={getUserInitial()} 
+                onProfileClick={handleProfileClick}
+              />
+            )}
+          </ProtectedRoute>
+        } />
+
+        {/* Catch all - redirect to login */}
+        <Route path="*" element={
+          <Navigate to={
+            (isAuthenticated || localStorage.getItem('jwt')) ? "/" : "/login"
+          } replace />
+        } />
+      </Routes>
       
       {/* Account Panel */}
       {isAuthenticated && (
