@@ -37,7 +37,13 @@ function App() {
   const [resultData, setResultData] = useState<{
     score: number;
     scoreRating: string;
-    issues: Array<{ id: string; title: string; description: string; count: number }>;
+    issues: Array<{ 
+      id: string; 
+      title: string; 
+      description: string; 
+      count: number;
+      details?: string[]; // Full List 세부 항목
+    }>;
     analyzedImageUrl?: string;
   } | null>(null);
 
@@ -120,7 +126,8 @@ function App() {
           
           // Result 페이지에 전달할 데이터 설정
           const score = scoreRes?.score ?? 0;
-          const scoreRating = score >= 80 ? 'Good' : score >= 60 ? 'Medium' : 'Poor';
+          // 점수 범위: 75-100: Good, 40-74: Needs Improvement, 0-39: Needs Attention
+          const scoreRating = score >= 75 ? 'Good' : score >= 40 ? 'Needs Improvement' : 'Needs Attention';
           
           setResultData({
             score,
@@ -130,7 +137,14 @@ function App() {
                 id: '1',
                 title: 'Touch Target Size',
                 description: 'Ensures all interactive elements are large enough to be easily activated. WCAG recommends a minimum target size of 44x44 pixels for touch interfaces.',
-                count: 5
+                count: 5,
+                details: [
+                  'Switch-Switch',
+                  'Button-Submit',
+                  'Icon-Close',
+                  'Link-Login',
+                  'Checkbox-Terms'
+                ]
               },
               {
                 id: '2',

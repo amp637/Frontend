@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navigation from '../components/Navigation';
 import './Result.css';
 
@@ -7,6 +7,7 @@ interface Issue {
   title: string;
   description: string;
   count: number;
+  details?: string[]; // 세부 항목 리스트
 }
 
 interface ResultProps {
@@ -30,7 +31,14 @@ const Result: React.FC<ResultProps> = ({
       id: '1',
       title: 'Touch Target Size',
       description: 'Ensures all interactive elements are large enough to be easily activated. WCAG recommends a minimum target size of 44x44 pixels for touch interfaces.',
-      count: 5
+      count: 5,
+      details: [
+        'Switch-Switch',
+        'Button-Submit',
+        'Icon-Close',
+        'Link-Login',
+        'Checkbox-Terms'
+      ]
     },
     {
       id: '2',
@@ -47,10 +55,31 @@ const Result: React.FC<ResultProps> = ({
   ],
   analyzedImageUrl
 }) => {
+  // 각 이슈별 확장/축소 상태 관리
+  const [expandedIssues, setExpandedIssues] = useState<{ [key: string]: boolean }>({});
+
+  // 점수 범위에 따른 색상 (0-39: 빨강, 40-74: 주황, 75-100: 초록)
   const getScoreColor = (score: number) => {
-    if (score >= 80) return '#10b981'; // green
-    if (score >= 60) return '#f59e0b'; // yellow
-    return '#ef4444'; // red
+    if (score >= 75) return '#10b981'; // 초록 (Good)
+    if (score >= 40) return '#f59e0b'; // 주황 (Needs Improvement)
+    return '#ef4444'; // 빨강 (Needs Attention)
+  };
+
+  // 점수 범위에 따른 등급 자동 설정
+  const getScoreRating = (score: number) => {
+    if (score >= 75) return 'Good';
+    if (score >= 40) return 'Needs Improvement';
+    return 'Needs Attention';
+  };
+
+  const actualScoreRating = scoreRating || getScoreRating(score);
+
+  // Full List 토글
+  const toggleIssueDetails = (issueId: string) => {
+    setExpandedIssues(prev => ({
+      ...prev,
+      [issueId]: !prev[issueId]
+    }));
   };
 
   const handleRunAgain = () => {
@@ -78,8 +107,8 @@ const Result: React.FC<ResultProps> = ({
                 </div>
               </div>
 
-              <div className={`score-badge badge-${scoreRating.toLowerCase()}`}>
-                {scoreRating}
+              <div className={`score-badge badge-${actualScoreRating.toLowerCase().replace(/\s+/g, '-')}`}>
+                {actualScoreRating}
               </div>
 
               {/* 분석 이미지 표시 */}
@@ -112,13 +141,50 @@ const Result: React.FC<ResultProps> = ({
                       </span>
                     </div>
                     <p className="issue-description">{issue.description}</p>
-                    {/* 선택사항: Full List 버튼 */}
-                    {/* <button className="full-list-btn">
-                      <span>Full List</span>
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                        <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </button> */}
+                    
+                    {/* 세부 항목이 있는 경우 Full List 버튼 표시 */}
+                    {issue.details && issue.details.length > 0 && (
+                      <>
+                        {/* 확장된 상세 목록 */}
+                        {expandedIssues[issue.id] && (
+                          <div className="issue-details-container">
+                            <ul className="issue-details-list">
+                              {issue.details.map((detail, idx) => (
+                                <li key={idx} className="issue-detail-item">
+                                  {detail}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        
+                        {/* Full List 토글 버튼 */}
+                        <button 
+                          className="full-list-btn"
+                          onClick={() => toggleIssueDetails(issue.id)}
+                        >
+                          <span>Full List</span>
+                          <svg 
+                            width="16" 
+                            height="16" 
+                            viewBox="0 0 16 16" 
+                            fill="none"
+                            style={{ 
+                              transform: expandedIssues[issue.id] ? 'rotate(90deg)' : 'rotate(0deg)',
+                              transition: 'transform 0.2s'
+                            }}
+                          >
+                            <path 
+                              d="M6 12L10 8L6 4" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      </>
+                    )}
                   </div>
                 ))}
               </div>

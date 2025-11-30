@@ -94,19 +94,22 @@
   width: fit-content;
 }
 
+/* 75-100: Good (초록) */
 .score-badge.badge-good {
   background-color: #d1fae5;
   border: 1px solid #a7f3d0;
   color: #065f46;
 }
 
-.score-badge.badge-medium {
+/* 40-74: Needs Improvement (주황) */
+.score-badge.badge-needs-improvement {
   background-color: #fef3c7;
   border: 1px solid #fde68a;
   color: #92400e;
 }
 
-.score-badge.badge-poor {
+/* 0-39: Needs Attention (빨강) */
+.score-badge.badge-needs-attention {
   background-color: #fecaca;
   border: 1px solid #fca5a5;
   color: #991b1b;
@@ -214,12 +217,41 @@
   margin: 0;
 }
 
-/* Full List 버튼 (선택사항) */
+/* ==================== Full List 확장 섹션 ==================== */
+.issue-details-container {
+  margin-top: 12px;
+  background-color: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 13px;
+}
+
+.issue-details-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.issue-detail-item {
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: -0.150390625px;
+  color: #4b5563;
+  padding: 0;
+}
+
+/* Full List 토글 버튼 */
 .full-list-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 4px 8px;
+  margin-top: 12px;
   background: transparent;
   border: none;
   border-radius: 4px;
@@ -241,6 +273,7 @@
 .full-list-btn svg {
   width: 16px;
   height: 16px;
+  transition: transform 0.2s;
 }
 
 /* ==================== 액션 버튼 ==================== */
