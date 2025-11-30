@@ -2,10 +2,12 @@ import React from 'react';
 import './AccountPanel.css';
 
 interface UploadHistory {
-  id: string;
-  fileName: string;
-  uploadDate: Date;
+  id: number;
+  s3_url: string;
+  debug_image_url: string | null;
   score: number;
+  created_at: string;
+  fileName: string;
 }
 
 interface AccountPanelProps {
@@ -16,6 +18,7 @@ interface AccountPanelProps {
   userInitial?: string;
   uploadHistory?: UploadHistory[];
   onLogout?: () => void;
+  onHistoryClick?: (item: UploadHistory) => void;
 }
 
 const AccountPanel: React.FC<AccountPanelProps> = ({
@@ -25,15 +28,26 @@ const AccountPanel: React.FC<AccountPanelProps> = ({
   userEmail = 'alex.johnson@example.com',
   userInitial = 'A',
   uploadHistory = [],
-  onLogout
+  onLogout,
+  onHistoryClick
 }) => {
   if (!isOpen) return null;
 
-  const formatDate = (date: Date) => {
+  // 안전한 날짜 포맷팅 함수
+  const formatUploadDate = (createdAt: string) => {
+    if (!createdAt) return '-';
+    
+    const date = new Date(createdAt);
+    
+    // 유효한 날짜인지 확인
+    if (Number.isNaN(date.getTime())) {
+      return '-';
+    }
+    
     return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
       year: 'numeric',
+      month: 'short',
+      day: '2-digit',
       hour: '2-digit',
       minute: '2-digit',
       hour12: true
@@ -98,11 +112,16 @@ const AccountPanel: React.FC<AccountPanelProps> = ({
               /* History List */
               <div className="history-list">
                 {uploadHistory.map((item) => (
-                  <div key={item.id} className="history-item">
+                  <div 
+                    key={item.id} 
+                    className="history-item"
+                    onClick={() => onHistoryClick?.(item)}
+                    style={{ cursor: onHistoryClick ? 'pointer' : 'default' }}
+                  >
                     <div className="history-item-content">
                       <div className="history-item-info">
                         <p className="history-item-filename">{item.fileName}</p>
-                        <p className="history-item-date">{formatDate(item.uploadDate)}</p>
+                        <p className="history-item-date">{formatUploadDate(item.created_at)}</p>
                       </div>
                       <div className="history-item-score">
                         <span className="score-value">{item.score}</span>

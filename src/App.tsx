@@ -12,6 +12,7 @@ import { uploadFile } from "./api/upload";
 import { useAuthStore } from "./store/authStore";
 import { logout as apiLogout } from "./api/auth";
 import { getMyUploads } from "./api/myuploads";
+import type { MyUploadItem } from "./api/myuploads";
 import type { UploadResponseItem } from "./types/upload";
 
 import "./App.css";
@@ -19,10 +20,12 @@ import "./App.css";
 // Types
 // -------------------------------
 interface UploadHistory {
-  id: string;
-  fileName: string;
-  uploadDate: Date;
+  id: number;
+  s3_url: string;
+  debug_image_url: string | null;
   score: number;
+  created_at: string;
+  fileName: string;
 }
 
 function App() {
@@ -67,11 +70,13 @@ function App() {
       try {
         const serverData = await getMyUploads();
 
-        const formatted: UploadHistory[] = serverData.map((item: any) => ({
+        const formatted: UploadHistory[] = serverData.map((item: MyUploadItem) => ({
           id: item.id,
-          fileName: item.fileName,
-          score: item.score,
-          uploadDate: new Date(item.uploadDate),
+          s3_url: item.s3_url,
+          debug_image_url: item.debug_image_url,
+          score: item.score1, // score1을 점수로 사용
+          created_at: item.created_at,
+          fileName: item.s3_key.split('/').pop() || 'Untitled', // s3_key에서 파일명 추출
         }));
 
         setUploadHistory(formatted);
@@ -121,9 +126,11 @@ function App() {
       setTimeout(() => {
         // 업로드 히스토리에 추가
         const newItem: UploadHistory = {
-          id: uploadRes.user_id || Date.now().toString(),
+          id: Date.now(), // 임시 ID (서버에서 실제 ID는 /myuploads에서 가져옴)
+          s3_url: uploadRes.image_url,
+          debug_image_url: uploadRes.debug_image_url,
           fileName: file.name,
-          uploadDate: new Date(),
+          created_at: new Date().toISOString(),
           score: uploadRes.score,
         };
 
@@ -145,6 +152,42 @@ function App() {
     setTaskId(null);
     setError(null);
     setUploadResult(null);
+  };
+
+  // -------------------------------
+  // Upload History 클릭 핸들러
+  // -------------------------------
+  const handleHistoryClick = (item: UploadHistory) => {
+    // 결과 페이지로 이동하면서 데이터를 state로 전달
+    setShowResults(true);
+    
+    // 히스토리 아이템을 uploadResult 형식으로 변환
+    // (히스토리에서는 상세 violations 정보가 없으므로 최소한의 구조만 제공)
+    setUploadResult({
+      user_id: '',
+      image_url: item.s3_url,
+      debug_image_url: item.debug_image_url || '',
+      score: item.score,
+      ai_result: {
+        detections: [],
+        analysis: {
+          summary: {
+            passed: item.score >= 75,
+            total_violations: 0,
+            score: item.score,
+          },
+          violations: [],
+          spacing_result: { passed: true, violations: [] },
+          target_size_result: { passed: true, violations: [] },
+          label_pairing_result: { passed: true, details: [], violations: [] },
+        },
+        message: 'History item',
+      },
+      message: 'From history',
+    } as UploadResponseItem);
+    
+    // 계정 패널 닫기
+    setIsAccountPanelOpen(false);
   };
 
   // -------------------------------
@@ -207,6 +250,7 @@ function App() {
           userInitial={getUserInitial()}
           uploadHistory={uploadHistory}
           onLogout={handleLogout}
+          onHistoryClick={handleHistoryClick}
         />
       )}
     </>
