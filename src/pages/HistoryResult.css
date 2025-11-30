@@ -1,0 +1,233 @@
+.history-result-page {
+  min-height: 100vh;
+  background-color: #f9fafb;
+}
+
+.history-result-content {
+  max-width: 1229px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+/* Back to History Button */
+.back-to-history-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: #6b7280;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 24px;
+}
+
+.back-to-history-btn:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+.back-to-history-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Result Card */
+.history-result-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+/* Header with Gradient */
+.history-result-header {
+  background: linear-gradient(180deg, #ecfdf5 0%, #d1fae5 100%);
+  border-bottom: 1px solid #e5e7eb;
+  padding: 32px 48px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 32px;
+}
+
+.header-info {
+  flex: 1;
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: 400;
+  color: #111827;
+  margin: 0 0 16px 0;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.3125px;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.150390625px;
+}
+
+.info-label {
+  color: #9ca3af;
+  font-weight: 400;
+}
+
+.info-value {
+  color: #374151;
+  font-weight: 500;
+}
+
+/* Score Section */
+.header-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.score-badge {
+  padding: 12px 24px;
+  border-radius: 14px;
+  border: 2px solid;
+}
+
+.badge-text {
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.439453125px;
+}
+
+.score-number {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+}
+
+.score-value {
+  font-size: 30px;
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  line-height: 36px;
+  letter-spacing: 0.3955078125px;
+}
+
+.score-total {
+  font-size: 14px;
+  font-weight: 400;
+  color: #9ca3af;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.150390625px;
+  line-height: 20px;
+}
+
+/* Image Container */
+.history-result-image-container {
+  background-color: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 26px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.history-result-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Footer */
+.history-result-footer {
+  background-color: #f9fafb;
+  border-top: 1px solid #e5e7eb;
+  padding: 24px 48px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.upload-another-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 20px;
+  background-color: #10b981;
+  color: white;
+  border: none;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  letter-spacing: -0.150390625px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.upload-another-btn:hover {
+  background-color: #059669;
+}
+
+.upload-another-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .history-result-content {
+    padding: 16px;
+  }
+
+  .history-result-header {
+    padding: 24px 20px;
+  }
+
+  .header-content {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .header-score {
+    align-items: flex-start;
+  }
+
+  .history-result-image-container {
+    padding: 16px;
+  }
+
+  .history-result-footer {
+    padding: 16px 20px;
+    justify-content: center;
+  }
+
+  .upload-another-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+

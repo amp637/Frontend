@@ -6,6 +6,7 @@ import AuthCallback from "./pages/AuthCallback";
 import WebUpload from "./pages/WebUpload";
 import Analyzing from "./pages/Analyzing";
 import Result from "./pages/Result";
+import HistoryResult from "./pages/HistoryResult";
 import AccountPanel from "./components/AccountPanel";
 
 import { uploadFile } from "./api/upload";
@@ -35,9 +36,13 @@ function App() {
   const [__, setError] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [showHistoryResult, setShowHistoryResult] = useState(false);
   
   // Result 페이지에 전달할 업로드 결과 (백엔드 응답 전체)
   const [uploadResult, setUploadResult] = useState<UploadResponseItem | null>(null);
+  
+  // History Result 페이지에 전달할 히스토리 아이템
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<UploadHistory | null>(null);
 
   const navigate = useNavigate();
 
@@ -149,45 +154,32 @@ function App() {
 
   const handleReset = () => {
     setShowResults(false);
+    setShowHistoryResult(false);
     setTaskId(null);
     setError(null);
     setUploadResult(null);
+    setSelectedHistoryItem(null);
   };
 
   // -------------------------------
-  // Upload History 클릭 핸들러
+  // Upload History 클릭 핸들러 (새 UI로 이동)
   // -------------------------------
   const handleHistoryClick = (item: UploadHistory) => {
-    // 결과 페이지로 이동하면서 데이터를 state로 전달
-    setShowResults(true);
-    
-    // 히스토리 아이템을 uploadResult 형식으로 변환
-    // (히스토리에서는 상세 violations 정보가 없으므로 최소한의 구조만 제공)
-    setUploadResult({
-      user_id: '',
-      image_url: item.s3_url,
-      debug_image_url: item.debug_image_url || '',
-      score: item.score,
-      ai_result: {
-        detections: [],
-        analysis: {
-          summary: {
-            passed: item.score >= 75,
-            total_violations: 0,
-            score: item.score,
-          },
-          violations: [],
-          spacing_result: { passed: true, violations: [] },
-          target_size_result: { passed: true, violations: [] },
-          label_pairing_result: { passed: true, details: [], violations: [] },
-        },
-        message: 'History item',
-      },
-      message: 'From history',
-    } as UploadResponseItem);
-    
-    // 계정 패널 닫기
+    setSelectedHistoryItem(item);
+    setShowHistoryResult(true);
+    setShowResults(false);
     setIsAccountPanelOpen(false);
+  };
+
+  // -------------------------------
+  // History Result 페이지 핸들러
+  // -------------------------------
+  const handleBackToHistory = () => {
+    setIsAccountPanelOpen(true);
+  };
+
+  const handleUploadAnother = () => {
+    handleReset();
   };
 
   // -------------------------------
@@ -214,6 +206,17 @@ function App() {
                 <Analyzing
                   userInitial={getUserInitial()}
                   onProfileClick={() => setIsAccountPanelOpen(true)}
+                />
+              ) : showHistoryResult && selectedHistoryItem ? (
+                <HistoryResult
+                  imageUrl={selectedHistoryItem.debug_image_url || selectedHistoryItem.s3_url}
+                  score={selectedHistoryItem.score}
+                  fileName={selectedHistoryItem.fileName}
+                  analyzedDate={selectedHistoryItem.created_at}
+                  userInitial={getUserInitial()}
+                  onProfileClick={() => setIsAccountPanelOpen(true)}
+                  onBackToHistory={handleBackToHistory}
+                  onUploadAnother={handleUploadAnother}
                 />
               ) : showResults ? (
                 <Result
