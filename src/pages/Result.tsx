@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
-import { UploadResponseItem, ProcessedIssue } from '../types/upload';
+import type { UploadResponseItem, ProcessedIssue } from '../types/upload';
 import './Result.css';
 
 interface ResultProps {
@@ -21,7 +21,6 @@ const Result: React.FC<ResultProps> = ({
   const [processedIssues, setProcessedIssues] = useState<ProcessedIssue[]>([]);
   const [score, setScore] = useState<number>(0);
   const [imageUrl, setImageUrl] = useState<string>('');
-  const [debugImageUrl, setDebugImageUrl] = useState<string>('');
 
   // uploadResult가 변경될 때마다 데이터 처리
   useEffect(() => {
@@ -33,7 +32,7 @@ const Result: React.FC<ResultProps> = ({
 
     // 2. 이미지 URL 추출
     setImageUrl(uploadResult.image_url);
-    setDebugImageUrl(uploadResult.debug_image_url);
+    // Debug 이미지는 필요시 사용: uploadResult.debug_image_url
 
     // 3. violations 배열에서 각 rule별로 개수 계산
     const violations = uploadResult.ai_result.analysis.violations;
@@ -58,7 +57,7 @@ const Result: React.FC<ResultProps> = ({
     );
 
     // 6. Label Pairing 세부 항목 (현재는 비어있지만 구조는 유지)
-    const labelPairingDetails = uploadResult.ai_result.analysis.label_pairing_result.violations.map((v: any, idx: number) =>
+    const labelPairingDetails = uploadResult.ai_result.analysis.label_pairing_result.violations.map((_violation: any, idx: number) =>
       `Issue ${idx + 1}`
     );
 

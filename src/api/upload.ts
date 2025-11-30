@@ -1,5 +1,5 @@
 import api from '../lib/api';
-import { UploadResponse, UploadResponseItem } from '../types/upload';
+import type { UploadResponse, UploadResponseItem } from '../types/upload';
 
 export const uploadFile = async (file: File): Promise<UploadResponseItem> => {
   try {

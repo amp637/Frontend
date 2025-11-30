@@ -9,11 +9,10 @@ import Result from "./pages/Result";
 import AccountPanel from "./components/AccountPanel";
 
 import { uploadFile } from "./api/upload";
-import { getScore } from "./api/returnScore";
 import { useAuthStore } from "./store/authStore";
 import { logout as apiLogout } from "./api/auth";
 import { getMyUploads } from "./api/myuploads";
-import { UploadResponseItem } from "./types/upload";
+import type { UploadResponseItem } from "./types/upload";
 
 import "./App.css";
 // -------------------------------
