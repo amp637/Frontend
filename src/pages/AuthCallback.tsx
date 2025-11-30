@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '../store/authStore';
 import { decodeJWT } from '../utils/jwt';
-import './AuthCallback.css';
 
 const AuthCallback: React.FC = () => {
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [processed, setProcessed] = useState<boolean>(false); // 중복 실행 방지 플래그
   const { login, setError } = useAuthStore();
@@ -88,7 +86,6 @@ const AuthCallback: React.FC = () => {
         const message = err.message || '로그인 처리 중 오류가 발생했습니다.';
         setErrorMessage(message);
         setError(message);
-        setStatus('error');
         setProcessed(true); // 처리 완료 플래그 설정
 
         // JWT 저장 실패 시 localStorage에서 제거
@@ -98,11 +95,9 @@ const AuthCallback: React.FC = () => {
         // 에러 메시지 표시
         alert(`로그인에 실패했습니다. 다시 시도해 주세요.\n\n${message}`);
 
-        // 에러 후 2초 뒤 로그인 페이지로 복귀
-        setTimeout(() => {
-          console.log('🔄 에러 발생 - 로그인 페이지로 이동');
-          window.location.replace('/login');
-        }, 2000);
+        // 에러 후 즉시 로그인 페이지로 복귀
+        console.log('🔄 에러 발생 - 로그인 페이지로 이동');
+        window.location.replace('/login');
       }
     };
 
@@ -110,42 +105,13 @@ const AuthCallback: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // 빈 dependency array로 한 번만 실행
 
-  return (
-    <div className="auth-callback-page">
-      <div className="auth-callback-container">
-        {/* 로딩 중 또는 에러 시에만 UI 표시 (성공 시에는 바로 리다이렉트) */}
-        {(status === 'loading' || status === 'error') && (
-          <>
-            {status === 'loading' && (
-              <div className="auth-callback-content">
-                <div className="auth-callback-spinner"></div>
-                <h2 className="auth-callback-title">로그인 중…</h2>
-                <p className="auth-callback-description">
-                  Google 계정으로 인증하고 있습니다.
-                </p>
-                <p className="auth-callback-sub">
-                  잠시만 기다려 주세요.
-                </p>
-              </div>
-            )}
+  // UI를 렌더링하지 않고 바로 리다이렉트 처리
+  // 에러가 있을 때만 간단한 메시지 표시
+  if (errorMessage) {
+    return null; // 에러 시에도 alert으로 처리하고 바로 리다이렉트하므로 UI 불필요
+  }
 
-            {status === 'error' && (
-              <div className="auth-callback-content">
-                <div className="auth-callback-error-icon">✕</div>
-                <h2 className="auth-callback-title">로그인 실패</h2>
-                <p className="auth-callback-description auth-callback-error">
-                  {errorMessage}
-                </p>
-                <p className="auth-callback-description">
-                  잠시 후 로그인 페이지로 돌아갑니다.
-                </p>
-              </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
+  return null; // 아무것도 렌더링하지 않음
 };
 
 export default AuthCallback;
