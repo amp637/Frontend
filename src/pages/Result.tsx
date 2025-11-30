@@ -31,8 +31,9 @@ const Result: React.FC<ResultProps> = ({
     setScore(analysisScore);
 
     // 2. 이미지 URL 추출
-    setImageUrl(uploadResult.image_url);
-    // Debug 이미지는 필요시 사용: uploadResult.debug_image_url
+    // 메인 이미지는 AI 모델이 처리한 debug_image_url을 우선 사용, 없으면 원본 image_url로 폴백
+    const mainImageSrc = uploadResult.debug_image_url || uploadResult.image_url;
+    setImageUrl(mainImageSrc);
 
     // 3. violations 배열에서 각 rule별로 개수 계산
     const violations = uploadResult.ai_result.analysis.violations;
@@ -156,12 +157,12 @@ const Result: React.FC<ResultProps> = ({
                 {scoreRating}
               </div>
 
-              {/* 원본 업로드 이미지 표시 */}
+              {/* AI 모델이 처리한 분석 이미지 표시 (debug_image_url 우선) */}
               <div className="analyzed-image-container">
                 {imageUrl ? (
                   <img 
                     src={imageUrl} 
-                    alt="Uploaded design sketch" 
+                    alt="Accessibility analyzed sketch with annotations" 
                     className="analyzed-image"
                   />
                 ) : (
@@ -170,20 +171,6 @@ const Result: React.FC<ResultProps> = ({
                   </div>
                 )}
               </div>
-
-              {/* 선택사항: 디버그 이미지 표시 (주석 처리) */}
-              {/* {debugImageUrl && (
-                <div className="analyzed-image-container" style={{ marginTop: '16px' }}>
-                  <h3 className="section-title" style={{ marginBottom: '12px', fontSize: '14px' }}>
-                    Debug Image
-                  </h3>
-                  <img 
-                    src={debugImageUrl} 
-                    alt="Debug visualization with annotations" 
-                    className="analyzed-image"
-                  />
-                </div>
-              )} */}
             </div>
 
             {/* 오른쪽: 주요 이슈 */}
