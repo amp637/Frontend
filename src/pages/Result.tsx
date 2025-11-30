@@ -190,26 +190,13 @@ const Result: React.FC<ResultProps> = ({
                     
                     {/* 세부 항목이 있는 경우 Full List 버튼 표시 */}
                     {issue.details && issue.details.length > 0 && (
-                      <>
-                        {/* 확장된 상세 목록 */}
-                        {expandedIssues[issue.id] && (
-                          <div className="issue-details-container">
-                            <ul className="issue-details-list">
-                              {issue.details.map((detail, idx) => (
-                                <li key={idx} className="issue-detail-item">
-                                  {detail}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                        
+                      <div className="full-list-section">
                         {/* Full List 토글 버튼 */}
                         <button 
                           className="full-list-btn"
                           onClick={() => toggleIssueDetails(issue.id)}
                         >
-                          <span>Full List</span>
+                          <span>{expandedIssues[issue.id] ? 'Close' : 'Full List'}</span>
                           <svg 
                             width="16" 
                             height="16" 
@@ -229,7 +216,20 @@ const Result: React.FC<ResultProps> = ({
                             />
                           </svg>
                         </button>
-                      </>
+                        
+                        {/* 확장된 상세 목록 */}
+                        {expandedIssues[issue.id] && (
+                          <div className="issue-details-container">
+                            <ul className="issue-details-list">
+                              {issue.details.map((detail, idx) => (
+                                <li key={idx} className="issue-detail-item">
+                                  {detail}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
                     )}
                   </div>
                 ))}

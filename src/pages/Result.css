@@ -218,6 +218,11 @@
 }
 
 /* ==================== Full List 확장 섹션 ==================== */
+.full-list-section {
+  display: flex;
+  flex-direction: column;
+}
+
 .issue-details-container {
   margin-top: 12px;
   background-color: #f9fafb;
