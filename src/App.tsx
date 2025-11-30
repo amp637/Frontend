@@ -32,6 +32,14 @@ function App() {
   const [__, setError] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  
+  // Result 페이지에 전달할 데이터
+  const [resultData, setResultData] = useState<{
+    score: number;
+    scoreRating: string;
+    issues: Array<{ id: string; title: string; description: string; count: number }>;
+    analyzedImageUrl?: string;
+  } | null>(null);
 
   const navigate = useNavigate();
 
@@ -109,12 +117,42 @@ function App() {
       setTimeout(async () => {
         try {
           const scoreRes = await getScore();
+          
+          // Result 페이지에 전달할 데이터 설정
+          const score = scoreRes?.score ?? 0;
+          const scoreRating = score >= 80 ? 'Good' : score >= 60 ? 'Medium' : 'Poor';
+          
+          setResultData({
+            score,
+            scoreRating,
+            issues: scoreRes?.issues || [
+              {
+                id: '1',
+                title: 'Touch Target Size',
+                description: 'Ensures all interactive elements are large enough to be easily activated. WCAG recommends a minimum target size of 44x44 pixels for touch interfaces.',
+                count: 5
+              },
+              {
+                id: '2',
+                title: 'Spacing',
+                description: 'Adequate spacing between interactive elements prevents accidental activation and improves overall usability for users with motor impairments.',
+                count: 3
+              },
+              {
+                id: '3',
+                title: 'Input Labels',
+                description: 'Every input field should have a clear, visible label or programmatically associated label to help users understand what information is required.',
+                count: 2
+              }
+            ],
+            analyzedImageUrl: scoreRes?.analyzedImageUrl || scoreRes?.image_url || undefined
+          });
 
           const newItem: UploadHistory = {
             id: newTaskId || Date.now().toString(),
             fileName: file.name,
             uploadDate: new Date(),
-            score: scoreRes?.score ?? 0,
+            score: score,
           };
 
           setUploadHistory((prev) => [newItem, ...prev]);
@@ -136,6 +174,7 @@ function App() {
     setShowResults(false);
     setTaskId(null);
     setError(null);
+    setResultData(null);
   };
 
   // -------------------------------
@@ -168,6 +207,10 @@ function App() {
                   onReset={handleReset}
                   userInitial={getUserInitial()}
                   onProfileClick={() => setIsAccountPanelOpen(true)}
+                  score={resultData?.score}
+                  scoreRating={resultData?.scoreRating}
+                  issues={resultData?.issues}
+                  analyzedImageUrl={resultData?.analyzedImageUrl}
                 />
               ) : (
                 <WebUpload
