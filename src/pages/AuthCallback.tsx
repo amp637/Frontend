@@ -64,7 +64,6 @@ const AuthCallback: React.FC = () => {
           picture: userInfo.picture,
         });
 
-        setStatus('success');
         setProcessed(true); // 처리 완료 플래그 설정
         
         console.log('✅ 로그인 완료! 업로드 페이지로 이동합니다...');
@@ -78,13 +77,11 @@ const AuthCallback: React.FC = () => {
           throw new Error('JWT 최종 확인 실패 - localStorage에 저장되지 않음');
         }
         
-        // 성공 후 업로드 페이지로 강제 이동
-        setTimeout(() => {
-          const beforeMove = localStorage.getItem('jwt');
-          console.log('🔄 이동 직전 JWT 확인:', beforeMove ? '있음 (' + beforeMove.substring(0, 20) + '...)' : '없음');
-          console.log('🔄 window.location.href = "/" 실행');
-          window.location.href = '/';
-        }, 500);
+        // 성공 후 바로 업로드 페이지로 이동 (success 화면 건너뛰기)
+        const beforeMove = localStorage.getItem('jwt');
+        console.log('🔄 이동 직전 JWT 확인:', beforeMove ? '있음 (' + beforeMove.substring(0, 20) + '...)' : '없음');
+        console.log('🔄 window.location.href = "/" 실행');
+        window.location.href = '/';
 
       } catch (err: any) {
         console.error('❌ 인증 처리 실패:', err);
@@ -116,40 +113,35 @@ const AuthCallback: React.FC = () => {
   return (
     <div className="auth-callback-page">
       <div className="auth-callback-container">
-        {status === 'loading' && (
-          <div className="auth-callback-content">
-            <div className="auth-callback-spinner"></div>
-            <h2 className="auth-callback-title">로그인 중…</h2>
-            <p className="auth-callback-description">
-              Google 계정으로 인증하고 있습니다.
-            </p>
-            <p className="auth-callback-sub">
-              잠시만 기다려 주세요.
-            </p>
-          </div>
-        )}
+        {/* 로딩 중 또는 에러 시에만 UI 표시 (성공 시에는 바로 리다이렉트) */}
+        {(status === 'loading' || status === 'error') && (
+          <>
+            {status === 'loading' && (
+              <div className="auth-callback-content">
+                <div className="auth-callback-spinner"></div>
+                <h2 className="auth-callback-title">로그인 중…</h2>
+                <p className="auth-callback-description">
+                  Google 계정으로 인증하고 있습니다.
+                </p>
+                <p className="auth-callback-sub">
+                  잠시만 기다려 주세요.
+                </p>
+              </div>
+            )}
 
-        {status === 'success' && (
-          <div className="auth-callback-content">
-            <div className="auth-callback-success-icon">✓</div>
-            <h2 className="auth-callback-title">로그인 성공!</h2>
-            <p className="auth-callback-description">
-              잠시 후 메인 페이지로 이동합니다.
-            </p>
-          </div>
-        )}
-
-        {status === 'error' && (
-          <div className="auth-callback-content">
-            <div className="auth-callback-error-icon">✕</div>
-            <h2 className="auth-callback-title">로그인 실패</h2>
-            <p className="auth-callback-description auth-callback-error">
-              {errorMessage}
-            </p>
-            <p className="auth-callback-description">
-              잠시 후 로그인 페이지로 돌아갑니다.
-            </p>
-          </div>
+            {status === 'error' && (
+              <div className="auth-callback-content">
+                <div className="auth-callback-error-icon">✕</div>
+                <h2 className="auth-callback-title">로그인 실패</h2>
+                <p className="auth-callback-description auth-callback-error">
+                  {errorMessage}
+                </p>
+                <p className="auth-callback-description">
+                  잠시 후 로그인 페이지로 돌아갑니다.
+                </p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
