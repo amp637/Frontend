@@ -1,62 +1,94 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
+import { UploadResponseItem, ProcessedIssue } from '../types/upload';
 import './Result.css';
-
-interface Issue {
-  id: string;
-  title: string;
-  description: string;
-  count: number;
-  details?: string[]; // 세부 항목 리스트
-}
 
 interface ResultProps {
   onReset?: () => void;
   userInitial?: string;
   onProfileClick?: () => void;
-  score?: number;
-  scoreRating?: string;
-  issues?: Issue[];
-  analyzedImageUrl?: string; // 서버에서 받은 분석 이미지 URL
+  uploadResult?: UploadResponseItem | null; // 백엔드 응답 전체
 }
 
 const Result: React.FC<ResultProps> = ({ 
   onReset, 
   userInitial, 
   onProfileClick,
-  score = 90,
-  scoreRating = 'Good',
-  issues = [
-    {
-      id: '1',
-      title: 'Touch Target Size',
-      description: 'Ensures all interactive elements are large enough to be easily activated. WCAG recommends a minimum target size of 44x44 pixels for touch interfaces.',
-      count: 5,
-      details: [
-        'Switch-Switch',
-        'Button-Submit',
-        'Icon-Close',
-        'Link-Login',
-        'Checkbox-Terms'
-      ]
-    },
-    {
-      id: '2',
-      title: 'Spacing',
-      description: 'Adequate spacing between interactive elements prevents accidental activation and improves overall usability for users with motor impairments.',
-      count: 3
-    },
-    {
-      id: '3',
-      title: 'Input Labels',
-      description: 'Every input field should have a clear, visible label or programmatically associated label to help users understand what information is required.',
-      count: 2
-    }
-  ],
-  analyzedImageUrl
+  uploadResult
 }) => {
   // 각 이슈별 확장/축소 상태 관리
   const [expandedIssues, setExpandedIssues] = useState<{ [key: string]: boolean }>({});
+  const [processedIssues, setProcessedIssues] = useState<ProcessedIssue[]>([]);
+  const [score, setScore] = useState<number>(0);
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [debugImageUrl, setDebugImageUrl] = useState<string>('');
+
+  // uploadResult가 변경될 때마다 데이터 처리
+  useEffect(() => {
+    if (!uploadResult) return;
+
+    // 1. 점수 추출
+    const analysisScore = uploadResult.ai_result.analysis.summary.score;
+    setScore(analysisScore);
+
+    // 2. 이미지 URL 추출
+    setImageUrl(uploadResult.image_url);
+    setDebugImageUrl(uploadResult.debug_image_url);
+
+    // 3. violations 배열에서 각 rule별로 개수 계산
+    const violations = uploadResult.ai_result.analysis.violations;
+    
+    // Target Size 이슈 개수
+    const targetSizeCount = violations.filter(v => v.rule === 'target_size').length;
+    
+    // Spacing 이슈 개수
+    const spacingCount = violations.filter(v => v.rule === 'spacing').length;
+    
+    // Label Pairing 이슈 개수
+    const labelPairingCount = uploadResult.ai_result.analysis.label_pairing_result.violations.length;
+
+    // 4. Spacing 세부 항목 (Full List)
+    const spacingDetails = uploadResult.ai_result.analysis.spacing_result.violations.map(v => 
+      `${v.classes.join(' - ')} (distance: ${v.distance.toFixed(2)}px)`
+    );
+
+    // 5. Target Size 세부 항목 (Full List)
+    const targetSizeDetails = uploadResult.ai_result.analysis.target_size_result.violations.map(v =>
+      v.detail
+    );
+
+    // 6. Label Pairing 세부 항목 (현재는 비어있지만 구조는 유지)
+    const labelPairingDetails = uploadResult.ai_result.analysis.label_pairing_result.violations.map((v: any, idx: number) =>
+      `Issue ${idx + 1}`
+    );
+
+    // 7. ProcessedIssue 배열 생성
+    const issues: ProcessedIssue[] = [
+      {
+        id: '1',
+        title: 'Touch Target Size',
+        description: 'Ensures all interactive elements are large enough to be easily activated. WCAG recommends a minimum target size of 44x44 pixels for touch interfaces.',
+        count: targetSizeCount,
+        details: targetSizeDetails.length > 0 ? targetSizeDetails : undefined
+      },
+      {
+        id: '2',
+        title: 'Spacing',
+        description: 'Adequate spacing between interactive elements prevents accidental activation and improves overall usability for users with motor impairments.',
+        count: spacingCount,
+        details: spacingDetails.length > 0 ? spacingDetails : undefined
+      },
+      {
+        id: '3',
+        title: 'Input Labels',
+        description: 'Every input field should have a clear, visible label or programmatically associated label to help users understand what information is required.',
+        count: labelPairingCount,
+        details: labelPairingDetails.length > 0 ? labelPairingDetails : undefined
+      }
+    ];
+
+    setProcessedIssues(issues);
+  }, [uploadResult]);
 
   // 점수 범위에 따른 색상 (0-39: 빨강, 40-74: 주황, 75-100: 초록)
   const getScoreColor = (score: number) => {
@@ -72,7 +104,7 @@ const Result: React.FC<ResultProps> = ({
     return 'Needs Attention';
   };
 
-  const actualScoreRating = scoreRating || getScoreRating(score);
+  const scoreRating = getScoreRating(score);
 
   // Full List 토글
   const toggleIssueDetails = (issueId: string) => {
@@ -87,6 +119,20 @@ const Result: React.FC<ResultProps> = ({
       onReset();
     }
   };
+
+  // 데이터가 없으면 로딩 표시
+  if (!uploadResult) {
+    return (
+      <div className="result-page">
+        <Navigation showProfile={true} userInitial={userInitial} onProfileClick={onProfileClick} />
+        <div className="result-container">
+          <div className="result-card">
+            <p>Loading result...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="result-page">
@@ -107,24 +153,38 @@ const Result: React.FC<ResultProps> = ({
                 </div>
               </div>
 
-              <div className={`score-badge badge-${actualScoreRating.toLowerCase().replace(/\s+/g, '-')}`}>
-                {actualScoreRating}
+              <div className={`score-badge badge-${scoreRating.toLowerCase().replace(/\s+/g, '-')}`}>
+                {scoreRating}
               </div>
 
-              {/* 분석 이미지 표시 */}
+              {/* 원본 업로드 이미지 표시 */}
               <div className="analyzed-image-container">
-                {analyzedImageUrl ? (
+                {imageUrl ? (
                   <img 
-                    src={analyzedImageUrl} 
-                    alt="Analyzed design with accessibility annotations" 
+                    src={imageUrl} 
+                    alt="Uploaded design sketch" 
                     className="analyzed-image"
                   />
                 ) : (
                   <div className="image-placeholder">
-                    <p>No analyzed image available</p>
+                    <p>No image available</p>
                   </div>
                 )}
               </div>
+
+              {/* 선택사항: 디버그 이미지 표시 (주석 처리) */}
+              {/* {debugImageUrl && (
+                <div className="analyzed-image-container" style={{ marginTop: '16px' }}>
+                  <h3 className="section-title" style={{ marginBottom: '12px', fontSize: '14px' }}>
+                    Debug Image
+                  </h3>
+                  <img 
+                    src={debugImageUrl} 
+                    alt="Debug visualization with annotations" 
+                    className="analyzed-image"
+                  />
+                </div>
+              )} */}
             </div>
 
             {/* 오른쪽: 주요 이슈 */}
@@ -132,7 +192,7 @@ const Result: React.FC<ResultProps> = ({
               <h2 className="section-title">Issues</h2>
               
               <div className="issues-list">
-                {issues.map((issue) => (
+                {processedIssues.map((issue) => (
                   <div key={issue.id} className="issue-item">
                     <div className="issue-header">
                       <h3 className="issue-title">{issue.title}</h3>

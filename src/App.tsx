@@ -13,6 +13,7 @@ import { getScore } from "./api/returnScore";
 import { useAuthStore } from "./store/authStore";
 import { logout as apiLogout } from "./api/auth";
 import { getMyUploads } from "./api/myuploads";
+import { UploadResponseItem } from "./types/upload";
 
 import "./App.css";
 // -------------------------------
@@ -33,19 +34,8 @@ function App() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showResults, setShowResults] = useState(false);
   
-  // Result 페이지에 전달할 데이터
-  const [resultData, setResultData] = useState<{
-    score: number;
-    scoreRating: string;
-    issues: Array<{ 
-      id: string; 
-      title: string; 
-      description: string; 
-      count: number;
-      details?: string[]; // Full List 세부 항목
-    }>;
-    analyzedImageUrl?: string;
-  } | null>(null);
+  // Result 페이지에 전달할 업로드 결과 (백엔드 응답 전체)
+  const [uploadResult, setUploadResult] = useState<UploadResponseItem | null>(null);
 
   const navigate = useNavigate();
 
@@ -115,69 +105,36 @@ function App() {
     setError(null);
 
     try {
+      // /upload 호출 - 응답 배열의 첫 번째 요소를 반환받음
       const uploadRes = await uploadFile(file);
-      const newTaskId = uploadRes?.task_id;
-      setTaskId(newTaskId);
+      
+      console.log('📊 업로드 결과:', uploadRes);
+      console.log('📊 점수:', uploadRes.score);
+      console.log('📊 총 위반사항:', uploadRes.ai_result.analysis.summary.total_violations);
+      
+      // Task ID 저장 (필요한 경우)
+      setTaskId(uploadRes.user_id);
+      
+      // 업로드 결과를 state에 저장
+      setUploadResult(uploadRes);
 
-      // 3초 후 점수 조회
-      setTimeout(async () => {
-        try {
-          const scoreRes = await getScore();
-          
-          // Result 페이지에 전달할 데이터 설정
-          const score = scoreRes?.score ?? 0;
-          // 점수 범위: 75-100: Good, 40-74: Needs Improvement, 0-39: Needs Attention
-          const scoreRating = score >= 75 ? 'Good' : score >= 40 ? 'Needs Improvement' : 'Needs Attention';
-          
-          setResultData({
-            score,
-            scoreRating,
-            issues: scoreRes?.issues || [
-              {
-                id: '1',
-                title: 'Touch Target Size',
-                description: 'Ensures all interactive elements are large enough to be easily activated. WCAG recommends a minimum target size of 44x44 pixels for touch interfaces.',
-                count: 5,
-                details: [
-                  'Switch-Switch',
-                  'Button-Submit',
-                  'Icon-Close',
-                  'Link-Login',
-                  'Checkbox-Terms'
-                ]
-              },
-              {
-                id: '2',
-                title: 'Spacing',
-                description: 'Adequate spacing between interactive elements prevents accidental activation and improves overall usability for users with motor impairments.',
-                count: 3
-              },
-              {
-                id: '3',
-                title: 'Input Labels',
-                description: 'Every input field should have a clear, visible label or programmatically associated label to help users understand what information is required.',
-                count: 2
-              }
-            ],
-            analyzedImageUrl: scoreRes?.analyzedImageUrl || scoreRes?.image_url || undefined
-          });
+      // 분석 완료 시뮬레이션 (백엔드에서 이미 분석 완료된 상태로 옴)
+      setTimeout(() => {
+        // 업로드 히스토리에 추가
+        const newItem: UploadHistory = {
+          id: uploadRes.user_id || Date.now().toString(),
+          fileName: file.name,
+          uploadDate: new Date(),
+          score: uploadRes.score,
+        };
 
-          const newItem: UploadHistory = {
-            id: newTaskId || Date.now().toString(),
-            fileName: file.name,
-            uploadDate: new Date(),
-            score: score,
-          };
-
-          setUploadHistory((prev) => [newItem, ...prev]);
-          setShowResults(true);
-        } catch {
-          setError("점수 조회 실패");
-          alert("점수 조회 실패");
-        }
+        setUploadHistory((prev) => [newItem, ...prev]);
         setIsAnalyzing(false);
-      }, 3000);
-    } catch (err) {
+        setShowResults(true);
+      }, 2000); // 2초 딜레이 (UI 전환용)
+      
+    } catch (err: any) {
+      console.error('❌ 업로드 처리 실패:', err);
       setError("파일 업로드 오류");
       alert("업로드 중 오류 발생");
       setIsAnalyzing(false);
@@ -188,7 +145,7 @@ function App() {
     setShowResults(false);
     setTaskId(null);
     setError(null);
-    setResultData(null);
+    setUploadResult(null);
   };
 
   // -------------------------------
@@ -221,10 +178,7 @@ function App() {
                   onReset={handleReset}
                   userInitial={getUserInitial()}
                   onProfileClick={() => setIsAccountPanelOpen(true)}
-                  score={resultData?.score}
-                  scoreRating={resultData?.scoreRating}
-                  issues={resultData?.issues}
-                  analyzedImageUrl={resultData?.analyzedImageUrl}
+                  uploadResult={uploadResult}
                 />
               ) : (
                 <WebUpload
